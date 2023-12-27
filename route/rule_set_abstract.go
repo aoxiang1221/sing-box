@@ -21,10 +21,27 @@ type abstractRuleSet struct {
 	cancel      context.CancelFunc
 	tag         string
 	path        string
+	pType       string
 	format      string
 	metadata    adapter.RuleSetMetadata
 	rules       []adapter.HeadlessRule
 	updatedTime time.Time
+}
+
+func (s *abstractRuleSet) Tag() string {
+	return s.tag
+}
+
+func (s *abstractRuleSet) Type() string {
+	return s.pType
+}
+
+func (s *abstractRuleSet) Format() string {
+	return s.format
+}
+
+func (s *abstractRuleSet) UpdatedTime() time.Time {
+	return s.updatedTime
 }
 
 func (s *abstractRuleSet) Match(metadata *adapter.InboundContext) bool {
@@ -69,13 +86,20 @@ func (s *abstractRuleSet) setPath() error {
 	return nil
 }
 
-func (s *abstractRuleSet) loadFromFile(router adapter.Router) error {
-	err := s.setPath()
-	if err != nil {
-		return err
+func (s *abstractRuleSet) loadFromFile(router adapter.Router, firstLoad bool) error {
+	if firstLoad {
+		err := s.setPath()
+		if err != nil {
+			return err
+		}
 	}
 	setFile, err := os.Open(s.path)
 	if err != nil {
+		return nil
+	}
+	fs, _ := setFile.Stat()
+	modTime := fs.ModTime()
+	if !firstLoad && modTime == s.updatedTime {
 		return nil
 	}
 	content, err := os.ReadFile(s.path)
@@ -86,8 +110,7 @@ func (s *abstractRuleSet) loadFromFile(router adapter.Router) error {
 	if err != nil {
 		return err
 	}
-	fs, _ := setFile.Stat()
-	s.updatedTime = fs.ModTime()
+	s.updatedTime = modTime
 	return nil
 }
 
