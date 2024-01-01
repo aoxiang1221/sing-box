@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/sagernet/sing-box/common/geoip"
-	"github.com/sagernet/sing-dns"
-	"github.com/sagernet/sing-tun"
+	dns "github.com/sagernet/sing-dns"
+	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
@@ -24,6 +24,9 @@ type Router interface {
 	Outbounds() []Outbound
 	Outbound(tag string) (Outbound, bool)
 	DefaultOutbound(network string) (Outbound, error)
+
+	OutboundProviders() []OutboundProvider
+	OutboundProvider(tag string) (OutboundProvider, bool)
 
 	FakeIPStore() FakeIPStore
 
